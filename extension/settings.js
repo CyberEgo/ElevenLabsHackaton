@@ -1,4 +1,4 @@
-// VoiceFlow Settings Page Script
+// Lexia Settings Page Script
 // Handles API key management and preferences
 
 class SettingsManager {

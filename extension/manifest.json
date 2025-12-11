@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "VoiceFlow",
+  "name": "Lexia",
   "version": "1.0.0",
   "description": "Voice-first reading and editing assistant - Read aloud with word-by-word highlighting, control with voice, powered by ElevenLabs AI",
   "permissions": [
@@ -42,7 +42,7 @@
       "suggested_key": {
         "default": "Alt+V"
       },
-      "description": "Toggle VoiceFlow sidebar"
+      "description": "Toggle Lexia sidebar"
     },
     "play-pause": {
       "suggested_key": {

@@ -1,7 +1,7 @@
-// VoiceFlow Sidebar - Speechify-style floating player
+// Lexia Sidebar - Speechify-style floating player
 // Direct ElevenLabs API calls with word-by-word highlighting
 
-class VoiceFlowSidebar {
+class LexiaSidebar {
   constructor() {
     // State
     this.isPlaying = false;
@@ -52,7 +52,7 @@ class VoiceFlowSidebar {
     this.setupWhisperFlowDictation();
     this.setupInputTracking();
     this.loadVoices();
-    console.log('🎙️ VoiceFlow Sidebar initialized');
+    console.log('🎙️ Lexia Sidebar initialized');
   }
 
   setupInputTracking() {
@@ -101,12 +101,12 @@ class VoiceFlowSidebar {
 
   createSidebar() {
     // Remove existing sidebar if any
-    const existing = document.getElementById('voiceflow-sidebar');
+    const existing = document.getElementById('lexia-sidebar');
     if (existing) existing.remove();
 
     // Create sidebar container
     const sidebar = document.createElement('div');
-    sidebar.id = 'voiceflow-sidebar';
+    sidebar.id = 'lexia-sidebar';
     sidebar.className = this.elevenLabsKey ? '' : 'hidden';
     
     sidebar.innerHTML = `
@@ -988,7 +988,7 @@ class VoiceFlowSidebar {
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => new VoiceFlowSidebar());
+  document.addEventListener('DOMContentLoaded', () => new LexiaSidebar());
 } else {
-  new VoiceFlowSidebar();
+  new LexiaSidebar();
 }

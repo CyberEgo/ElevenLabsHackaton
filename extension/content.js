@@ -1,7 +1,7 @@
-// VoiceFlow Content Script
+// Lexia Content Script
 // Handles page interaction and text extraction
 
-console.log('🎙️ VoiceFlow content script loaded');
+console.log('🎙️ Lexia content script loaded');
 
 // Listen for messages from popup or background
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -33,7 +33,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 // Expose helper function for getting readable content
-window.VoiceFlowGetContent = function() {
+window.LexiaGetContent = function() {
   // Try to find the main content area
   const selectors = [
     'article',

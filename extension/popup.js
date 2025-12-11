@@ -1,4 +1,4 @@
-// VoiceFlow Popup Script
+// Lexia Popup Script
 // Handles API key status and settings navigation
 
 class PopupManager {

@@ -1,11 +1,11 @@
-// VoiceFlow Background Service Worker
+// Lexia Background Service Worker
 // Handles extension lifecycle and messaging
 
-console.log('🎙️ VoiceFlow background service worker started');
+console.log('🎙️ Lexia background service worker started');
 
 // Extension installation handler
 chrome.runtime.onInstalled.addListener((details) => {
-  console.log('🎙️ VoiceFlow installed:', details.reason);
+  console.log('🎙️ Lexia installed:', details.reason);
   
   if (details.reason === 'install') {
     // Open settings page on first install
@@ -70,14 +70,14 @@ chrome.commands.onCommand.addListener((command) => {
 // Context menu for quick access (optional)
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
-    id: 'voiceflow-read',
-    title: '🎧 Read with VoiceFlow',
+    id: 'lexia-read',
+    title: '🎧 Read with Lexia',
     contexts: ['selection']
   });
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === 'voiceflow-read' && info.selectionText) {
+  if (info.menuItemId === 'lexia-read' && info.selectionText) {
     chrome.tabs.sendMessage(tab.id, {
       action: 'readText',
       text: info.selectionText
