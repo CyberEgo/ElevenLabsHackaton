@@ -160,6 +160,13 @@ class LexiaSidebar {
           </svg>
         </button>
 
+        <!-- Explain Selection (Question mark icon) -->
+        <button class="vf-btn vf-explain" id="vf-explain" title="Explain Selection">
+          <svg viewBox="0 0 320 512" fill="currentColor" width="16" height="16">
+            <path d="M80 160c0-35.3 28.7-64 64-64h32c35.3 0 64 28.7 64 64v3.6c0 21.8-11.1 42.1-29.4 53.8l-42.2 27.1c-5.1 3.3-8.4 8.8-8.4 14.8V272c0 13.3 10.7 24 24 24s24-10.7 24-24V246.4l26.8-17.2C259.5 213.8 280 182.2 280 147.6V144c0-61.9-50.1-112-112-112H144C82.1 32 32 82.1 32 144c0 13.3 10.7 24 24 24s24-10.7 24-24zm80 224a32 32 0 1 0 0 64 32 32 0 1 0 0-64z"/>
+          </svg>
+        </button>
+
         <!-- Waveform/Activity -->
         <div class="vf-waveform" id="vf-waveform">
           <div class="vf-wave"></div>
@@ -247,6 +254,11 @@ class LexiaSidebar {
     // Read Selection button
     document.getElementById('vf-selection').addEventListener('click', () => {
       this.playSelectedText();
+    });
+
+    // Explain Selection button
+    document.getElementById('vf-explain').addEventListener('click', () => {
+      this.explainSelectedText();
     });
 
     // Settings button
@@ -789,6 +801,86 @@ Provide ONLY the edited result:`;
     }
 
     await this.speak(text);
+  }
+
+  async explainSelectedText() {
+    const text = this.selectedText || window.getSelection().toString().trim();
+    
+    if (!text) {
+      this.showToast('Please select some text to explain', 'error');
+      return;
+    }
+
+    if (!this.claudeKey) {
+      this.showToast('Please configure your Claude API key', 'error');
+      chrome.runtime.sendMessage({ action: 'openSettings' });
+      return;
+    }
+
+    if (!this.elevenLabsKey) {
+      this.showToast('Please configure your ElevenLabs API key', 'error');
+      chrome.runtime.sendMessage({ action: 'openSettings' });
+      return;
+    }
+
+    this.showToast('🤔 Getting explanation...');
+    this.expandPlayer();
+
+    try {
+      const explanation = await this.getExplanationFromClaude(text);
+      
+      if (explanation) {
+        this.showToast('🎙️ Reading explanation...');
+        await this.speak(explanation);
+      } else {
+        this.showToast('❌ Could not get explanation', 'error');
+      }
+    } catch (error) {
+      console.error('❓ Explain error:', error);
+      this.showToast('❌ Explanation failed: ' + error.message, 'error');
+    }
+  }
+
+  async getExplanationFromClaude(text) {
+    const systemPrompt = `You are a helpful assistant that explains text in a clear, concise way. 
+Your explanations should be:
+1. Easy to understand - use simple language
+2. Concise - keep it to 2-4 sentences for short text, or a brief paragraph for complex topics
+3. Informative - provide context, meaning, or background as appropriate
+4. Natural for speech - the explanation will be read aloud, so write conversationally
+
+Do not use bullet points, numbered lists, or special formatting. Write in flowing prose that sounds natural when spoken.`;
+
+    const userPrompt = `Please explain the following text:\n\n"${text}"`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': this.claudeKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        messages: [
+          { role: 'user', content: userPrompt }
+        ],
+        system: systemPrompt
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || `API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const explanation = data.content?.[0]?.text?.trim();
+    
+    console.log('❓ Claude explanation:', explanation);
+    return explanation;
   }
 
   async speak(text) {
