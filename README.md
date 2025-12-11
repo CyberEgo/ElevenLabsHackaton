@@ -4,7 +4,7 @@
 
 Built for the ElevenLabs Hackathon.
 
-📄 [Product Brief](Product-Brief.md) · 📖 [User Guide](User-Guide.md)
+📄 [Product Brief](Product-Brief.md) · 📖 [User Guide](User-Guide.md) · 🔧 [Technologies & Acknowledgments](Technologies.md)
 
 ## Team: AISquad#1
 
