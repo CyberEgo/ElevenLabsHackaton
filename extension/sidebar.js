@@ -30,6 +30,7 @@ class LexiaSidebar {
     this.targetElement = null;
     this.lastFocusedInput = null;
     this.dictationStartTime = null;
+    this.selectedTextForEdit = ''; // Text selected for AI editing
     
     // Voice settings
     this.currentVoiceId = '21m00Tcm4TlvDq8ikWAM'; // Default: Rachel
@@ -476,6 +477,10 @@ class LexiaSidebar {
       this.togglePause();
     }
 
+    // Capture any selected text for AI editing
+    this.selectedTextForEdit = window.getSelection().toString().trim();
+    console.log('🎤 Selected text for edit:', this.selectedTextForEdit ? `"${this.selectedTextForEdit.substring(0, 50)}..."` : 'none');
+
     // Find and store the target element (focused input or last active)
     this.targetElement = this.findTargetElement();
 
@@ -488,6 +493,9 @@ class LexiaSidebar {
     const textEl = document.getElementById('vf-dictation-text');
     textEl.textContent = '';
     display.classList.add('active');
+
+    // Show context info if text is selected
+    this.updateDictationContext(display);
 
     // Start recognition
     if (this.dictationRecognition) {
@@ -510,7 +518,7 @@ class LexiaSidebar {
   }
 
   // Stop dictation and optionally insert text
-  stopDictation(insertText = true) {
+  async stopDictation(insertText = true) {
     if (!this.isDictating) return;
 
     console.log('🎤 Stopping dictation, insert:', insertText, 'text:', this.dictationText);
@@ -542,9 +550,17 @@ class LexiaSidebar {
     }
 
     if (textToProcess) {
-      // Insert the dictated text
-      this.insertDictatedText(textToProcess);
-      this.showToast(`✅ Inserted: "${textToProcess.substring(0, 30)}${textToProcess.length > 30 ? '...' : ''}"`);
+      // Check if we have selected text - use AI to edit it
+      if (this.selectedTextForEdit) {
+        display.classList.add('active');
+        this.updateDictationDisplay('🤖 Processing with AI...', false);
+        await this.processAIEditCommand(textToProcess);
+        display.classList.remove('active');
+      } else {
+        // Simple text insertion
+        this.insertDictatedText(textToProcess);
+        this.showToast(`✅ Inserted: "${textToProcess.substring(0, 30)}${textToProcess.length > 30 ? '...' : ''}"`);
+      }
     } else {
       this.showToast('No text captured');
     }
@@ -555,6 +571,130 @@ class LexiaSidebar {
   clearDictationState() {
     this.dictationText = '';
     this.targetElement = null;
+    this.selectedTextForEdit = '';
+  }
+
+  // Show context info in dictation display
+  updateDictationContext(display) {
+    // Remove old context elements
+    display.querySelectorAll('.vf-dictation-context').forEach(el => el.remove());
+
+    if (this.selectedTextForEdit) {
+      const preview = this.selectedTextForEdit.length > 60 
+        ? this.selectedTextForEdit.substring(0, 60) + '...' 
+        : this.selectedTextForEdit;
+      const contextEl = document.createElement('div');
+      contextEl.className = 'vf-dictation-context';
+      contextEl.innerHTML = `<span class="vf-context-label">✨ Editing:</span> "${this.escapeHtml(preview)}"`;
+      display.insertBefore(contextEl, display.firstChild);
+    }
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Process AI edit command using Claude
+  async processAIEditCommand(command) {
+    console.log('🤖 Processing AI edit command:', command);
+    console.log('🤖 Selected text:', this.selectedTextForEdit);
+
+    if (!this.claudeKey) {
+      this.showToast('❌ Claude API key not configured', 'error');
+      // Fall back to simple insertion
+      this.insertDictatedText(command);
+      return;
+    }
+
+    try {
+      const result = await this.callClaudeForEdit(command, this.selectedTextForEdit);
+      
+      if (result) {
+        // Replace the selected text with the AI result
+        this.replaceSelection(result);
+        this.showToast(`✨ Text edited successfully`);
+        
+        // Optionally read back the result if short
+        if (result.length < 200 && this.elevenLabsKey) {
+          await this.speak(result);
+        }
+      } else {
+        this.showToast('❌ AI edit failed', 'error');
+      }
+    } catch (error) {
+      console.error('🤖 AI edit error:', error);
+      this.showToast('❌ AI edit failed: ' + error.message, 'error');
+    }
+  }
+
+  // Call Claude API to process the edit
+  async callClaudeForEdit(command, selectedText) {
+    const systemPrompt = `You are a precise text editing assistant. The user has selected some text and will give you an instruction for how to modify it.
+
+CRITICAL RULES:
+1. Return ONLY the edited text - no explanations, no preamble, no quotes around it
+2. Apply the user's instruction exactly as requested
+3. Preserve the original meaning unless explicitly asked to change it
+4. Keep the same general tone and style unless asked to change it
+5. Do not add any commentary or explanation - just output the result`;
+
+    const userPrompt = `Selected text: "${selectedText}"
+
+Instruction: ${command}
+
+Provide ONLY the edited result:`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': this.claudeKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        messages: [
+          { role: 'user', content: userPrompt }
+        ],
+        system: systemPrompt
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || `API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const result = data.content?.[0]?.text?.trim();
+    
+    console.log('🤖 Claude response:', result);
+    return result;
+  }
+
+  // Replace the current selection with new text
+  replaceSelection(newText) {
+    const selection = window.getSelection();
+    
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(document.createTextNode(newText));
+      
+      // Move cursor to end of inserted text
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      console.log('🤖 Replaced selection with:', newText);
+    } else {
+      // Fallback: try to insert at target element
+      this.insertDictatedText(newText);
+    }
   }
 
   findTargetElement() {
