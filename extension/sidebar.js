@@ -623,15 +623,25 @@ class LexiaSidebar {
   async speak(text) {
     if (!text || this.isLoading) return;
     
-    this.stop(); // Stop any current playback
+    // Save the selection range BEFORE calling stop() which clears it
+    const savedSelectionRange = this.selectionRange;
+    
+    this.stop(); // Stop any current playback (this clears selectionRange)
+    
+    // Restore the selection range
+    this.selectionRange = savedSelectionRange;
+    
     this.isLoading = true;
     this.currentText = text;
     this.updatePlayButton('loading');
     this.expandPlayer();
     
     // Wrap the selected text with highlight spans on the page
+    console.log('🎨 About to wrap, selectionRange exists:', !!this.selectionRange, 'highlightWords:', this.settings.highlightWords);
     if (this.settings.highlightWords && this.selectionRange) {
       this.wrapSelectionWithHighlights();
+    } else {
+      console.log('🎨 Skipping wrap - no selection range or highlighting disabled');
     }
     
     try {
