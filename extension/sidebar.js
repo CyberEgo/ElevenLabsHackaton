@@ -18,6 +18,11 @@ class LexiaSidebar {
     this.isExpanded = false;
     this.toastTimeout = null;
     
+    // On-page highlighting state
+    this.selectionRange = null;
+    this.highlightContainer = null;
+    this.wordSpans = [];
+    
     // Dictation state (WhisperFlow-style)
     this.isDictating = false;
     this.dictationRecognition = null;
@@ -277,6 +282,10 @@ class LexiaSidebar {
     
     if (text && text.length > 0) {
       this.selectedText = text;
+      // Store the selection range for highlighting
+      if (selection.rangeCount > 0) {
+        this.selectionRange = selection.getRangeAt(0).cloneRange();
+      }
       if (this.settings.autoShowSidebar && this.elevenLabsKey) {
         this.showSidebar();
       }
@@ -620,6 +629,11 @@ class LexiaSidebar {
     this.updatePlayButton('loading');
     this.expandPlayer();
     
+    // Wrap the selected text with highlight spans on the page
+    if (this.settings.highlightWords && this.selectionRange) {
+      this.wrapSelectionWithHighlights();
+    }
+    
     try {
       // Call ElevenLabs TTS with timestamps API
       const response = await fetch(
@@ -746,9 +760,6 @@ class LexiaSidebar {
   startHighlighting() {
     if (!this.settings.highlightWords || this.wordTimings.length === 0) return;
     
-    // Update text preview
-    this.updateTextPreview();
-    
     // Clear any existing interval
     if (this.highlightInterval) {
       clearInterval(this.highlightInterval);
@@ -765,7 +776,7 @@ class LexiaSidebar {
         if (currentTime >= timing.start && currentTime <= timing.end + 0.1) {
           if (this.currentWordIndex !== i) {
             this.currentWordIndex = i;
-            this.updateTextPreview();
+            this.highlightCurrentWord(i);
           }
           break;
         }
@@ -773,24 +784,71 @@ class LexiaSidebar {
     }, 50); // Check every 50ms for smooth highlighting
   }
 
+  highlightCurrentWord(index) {
+    // Remove highlight from all word spans
+    this.wordSpans.forEach(span => {
+      span.classList.remove('lexia-word-current');
+    });
+    
+    // Add highlight to current word
+    if (this.wordSpans[index]) {
+      this.wordSpans[index].classList.add('lexia-word-current');
+      
+      // Scroll the word into view if needed
+      this.wordSpans[index].scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest'
+      });
+    }
+  }
+
+  wrapSelectionWithHighlights() {
+    if (!this.selectionRange) return;
+    
+    try {
+      // Create a container for the highlighted text
+      const container = document.createElement('span');
+      container.className = 'lexia-highlight-container';
+      
+      // Extract the selected content
+      const fragment = this.selectionRange.extractContents();
+      
+      // Get all text content and split into words
+      const textContent = fragment.textContent || '';
+      const words = textContent.split(/\s+/).filter(w => w.length > 0);
+      
+      // Create spans for each word
+      this.wordSpans = [];
+      words.forEach((word, i) => {
+        const wordSpan = document.createElement('span');
+        wordSpan.className = 'lexia-word';
+        wordSpan.textContent = word;
+        wordSpan.dataset.index = i;
+        this.wordSpans.push(wordSpan);
+        container.appendChild(wordSpan);
+        
+        // Add space after word (except last)
+        if (i < words.length - 1) {
+          container.appendChild(document.createTextNode(' '));
+        }
+      });
+      
+      // Insert the container into the range
+      this.selectionRange.insertNode(container);
+      this.highlightContainer = container;
+      
+      // Clear the browser selection
+      window.getSelection().removeAllRanges();
+      
+    } catch (e) {
+      console.error('Failed to wrap selection with highlights:', e);
+    }
+  }
+
   updateTextPreview() {
-    const preview = document.getElementById('vf-preview');
-    if (!preview || this.words.length === 0) return;
-    
-    // Show a window of words around the current word
-    const windowSize = 15;
-    const start = Math.max(0, this.currentWordIndex - 5);
-    const end = Math.min(this.words.length, start + windowSize);
-    
-    const html = this.words.slice(start, end).map((word, idx) => {
-      const actualIdx = start + idx;
-      if (actualIdx === this.currentWordIndex) {
-        return `<span class="current-word">${word}</span>`;
-      }
-      return word;
-    }).join(' ');
-    
-    preview.innerHTML = html;
+    // This method is kept for backward compatibility but highlighting
+    // now happens directly on the page via highlightCurrentWord()
   }
 
   updateProgress() {
@@ -956,9 +1014,25 @@ class LexiaSidebar {
   }
 
   clearHighlights() {
-    document.querySelectorAll('.vf-highlight-word').forEach(el => {
-      el.classList.remove('vf-highlight-word');
-    });
+    // Remove the highlight container and restore original text
+    if (this.highlightContainer) {
+      try {
+        const parent = this.highlightContainer.parentNode;
+        if (parent) {
+          // Get the text content from the container
+          const textContent = this.highlightContainer.textContent;
+          const textNode = document.createTextNode(textContent);
+          parent.replaceChild(textNode, this.highlightContainer);
+          // Normalize to merge adjacent text nodes
+          parent.normalize();
+        }
+      } catch (e) {
+        console.error('Failed to clear highlights:', e);
+      }
+      this.highlightContainer = null;
+    }
+    this.wordSpans = [];
+    this.selectionRange = null;
   }
 
   base64ToBlob(base64, mimeType) {

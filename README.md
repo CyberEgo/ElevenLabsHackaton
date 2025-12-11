@@ -1,6 +1,6 @@
 # Lexia
 
-**A Chrome extension for text-to-speech with ElevenLabs voices and word-by-word highlighting.**
+**A browser extension for text-to-speech with ElevenLabs voices and word-by-word highlighting.**
 
 Built for the ElevenLabs Hackathon.
 
