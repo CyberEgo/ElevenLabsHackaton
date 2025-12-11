@@ -1,0 +1,25 @@
+# Build guide and research documents (internal use only)
+HACKATHON-BUILD-GUIDE.md
+Research documents/
+Reference Images/
+
+# Dependencies
+node_modules/
+
+# Environment and secrets
+.env
+.env.local
+*.key
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*

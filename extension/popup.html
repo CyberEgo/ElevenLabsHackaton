@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      width: 340px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      width: 32px;
+      height: 32px;
+      background: #00b4d8;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .settings-btn {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: background 0.2s;
+    }
+
+    .settings-btn:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .content {
+      padding: 16px;
+    }
+
+    .status-card {
+      background: rgba(0, 180, 216, 0.1);
+      border: 1px solid rgba(0, 180, 216, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .status-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .status-text {
+      font-size: 14px;
+      color: #aaa;
+    }
+
+    .status-text.success {
+      color: #00b4d8;
+    }
+
+    .status-text.warning {
+      color: #f59e0b;
+    }
+
+    .api-status {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .api-badge {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .api-badge .icon {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .api-badge .label {
+      font-size: 11px;
+      color: #888;
+    }
+
+    .api-badge .status {
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    .api-badge .status.connected {
+      color: #10b981;
+    }
+
+    .api-badge .status.missing {
+      color: #ef4444;
+    }
+
+    .commands {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .commands h3 {
+      font-size: 13px;
+      margin-bottom: 10px;
+      color: #00b4d8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .commands ul {
+      list-style: none;
+      font-size: 12px;
+    }
+
+    .commands li {
+      padding: 6px 0;
+      color: #ccc;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .commands code {
+      background: rgba(0, 180, 216, 0.2);
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: #00b4d8;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 11px;
+    }
+
+    .shortcut {
+      background: rgba(255,255,255,0.1);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #888;
+    }
+
+    .footer {
+      padding: 12px 16px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      text-align: center;
+    }
+
+    .setup-btn {
+      background: #00b4d8;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.2s;
+    }
+
+    .setup-btn:hover {
+      background: #48cae4;
+    }
+
+    .setup-btn.secondary {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .setup-btn.secondary:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .version {
+      font-size: 11px;
+      color: #666;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">🎧</div>
+      <h1>VoiceFlow</h1>
+    </div>
+    <button class="settings-btn" id="settingsBtn" title="Settings">⚙️</button>
+  </div>
+
+  <div class="content">
+    <div class="status-card">
+      <div class="status-icon" id="statusIcon">🎙️</div>
+      <div class="status-text" id="statusText">Select text on any page to read aloud</div>
+    </div>
+
+    <div class="api-status">
+      <div class="api-badge">
+        <div class="icon">🔊</div>
+        <div class="label">ElevenLabs</div>
+        <div class="status" id="elevenLabsStatus">Checking...</div>
+      </div>
+      <div class="api-badge">
+        <div class="icon">🤖</div>
+        <div class="label">Claude AI</div>
+        <div class="status" id="claudeStatus">Checking...</div>
+      </div>
+    </div>
+
+    <div class="commands">
+      <h3>⌨️ Keyboard Shortcuts</h3>
+      <ul>
+        <li><span class="shortcut">Alt+V</span> Toggle sidebar</li>
+        <li><span class="shortcut">Space</span> Play / Pause</li>
+        <li><span class="shortcut">←/→</span> Skip back / forward</li>
+        <li><span class="shortcut">↑/↓</span> Speed up / down</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="setup-btn" id="setupBtn">⚙️ Configure API Keys</button>
+    <div class="version">VoiceFlow v1.0.0 • ElevenLabs Hackathon</div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,438 @@
+/* VoiceFlow Sidebar Styles - Sleek Vertical Floating Player */
+
+/* Main Sidebar Container */
+#voiceflow-sidebar {
+  position: fixed;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2147483647;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#voiceflow-sidebar.hidden {
+  transform: translateY(-50%) translateX(-100px);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+/* Inner Sidebar - Vertical Pill Shape */
+.vf-sidebar-inner {
+  background: #1a1a2e;
+  border-radius: 28px;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+}
+
+.vf-sidebar-inner:hover {
+  box-shadow: 0 8px 32px rgba(0, 180, 216, 0.3);
+}
+
+/* Timer Display */
+.vf-timer {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 12px;
+  min-width: 36px;
+  text-align: center;
+}
+
+/* Control Buttons */
+.vf-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #aaa;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.vf-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.vf-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.vf-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Play Button - Primary Action */
+.vf-play-btn {
+  width: 44px;
+  height: 44px;
+  background: #00b4d8;
+  color: #fff;
+}
+
+.vf-play-btn:hover {
+  background: #48cae4;
+  transform: scale(1.05);
+}
+
+.vf-play-btn.playing {
+  animation: pulse 1.5s infinite;
+}
+
+.vf-play-btn.loading {
+  animation: pulse 0.8s infinite;
+  background: #0077b6;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 180, 216, 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(0, 180, 216, 0); }
+}
+
+/* Skip Buttons */
+.vf-skip span {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Avatar / Voice Selector */
+.vf-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(255,255,255,0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #00b4d8, #0077b6);
+  font-size: 16px;
+}
+
+.vf-avatar:hover {
+  border-color: #00b4d8;
+  transform: scale(1.05);
+}
+
+.vf-avatar.speaking {
+  animation: pulse 1.5s infinite;
+}
+
+.vf-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Speed Button */
+.vf-speed {
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 36px;
+}
+
+#vf-speed-text {
+  font-size: 11px;
+}
+
+/* Waveform Animation */
+.vf-waveform {
+  display: flex;
+  gap: 2px;
+  height: 20px;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.vf-wave {
+  width: 3px;
+  height: 8px;
+  background: #444;
+  border-radius: 2px;
+  transition: height 0.1s ease;
+}
+
+.vf-waveform.active .vf-wave {
+  animation: wave 0.5s ease-in-out infinite;
+  background: #00b4d8;
+}
+
+.vf-waveform.active .vf-wave:nth-child(1) { animation-delay: 0s; }
+.vf-waveform.active .vf-wave:nth-child(2) { animation-delay: 0.1s; }
+.vf-waveform.active .vf-wave:nth-child(3) { animation-delay: 0.2s; }
+.vf-waveform.active .vf-wave:nth-child(4) { animation-delay: 0.1s; }
+.vf-waveform.active .vf-wave:nth-child(5) { animation-delay: 0s; }
+
+@keyframes wave {
+  0%, 100% { height: 8px; }
+  50% { height: 18px; }
+}
+
+/* Collapse Button */
+.vf-collapse {
+  opacity: 0.5;
+}
+
+.vf-collapse:hover {
+  opacity: 1;
+}
+
+/* Toast Notifications */
+.vf-toast {
+  position: absolute;
+  left: 60px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1a1a2e;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+.vf-toast.show {
+  opacity: 1;
+}
+
+.vf-toast.error {
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+.vf-toast.success {
+  border: 1px solid rgba(16, 185, 129, 0.5);
+}
+
+/* Voice Selector Modal */
+#vf-voice-selector {
+  position: fixed;
+  left: 70px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 0;
+  width: 240px;
+  max-height: 400px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  z-index: 2147483647;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.vf-voice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.vf-voice-close {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.vf-voice-close:hover {
+  color: #fff;
+}
+
+.vf-voice-list {
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.vf-voice-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.vf-voice-item:hover {
+  background: rgba(0, 180, 216, 0.2);
+}
+
+.vf-voice-item.selected {
+  background: rgba(0, 180, 216, 0.3);
+}
+
+.vf-voice-avatar-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00b4d8, #0077b6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.vf-voice-info {
+  flex: 1;
+}
+
+.vf-voice-name {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.vf-voice-labels {
+  color: #888;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.vf-voice-preview {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: #00b4d8;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.vf-voice-preview:hover {
+  background: rgba(0, 180, 216, 0.3);
+}
+
+.vf-voice-loading {
+  padding: 20px;
+  color: #888;
+  text-align: center;
+}
+
+/* Word Highlighting - Speechify Style */
+.vf-highlight-wrapper {
+  display: inline;
+}
+
+.vf-highlight {
+  background: rgba(0, 180, 216, 0.15);
+  border-radius: 3px;
+  padding: 2px 0;
+  transition: all 0.15s ease;
+  display: inline;
+}
+
+.vf-highlight-current {
+  background: rgba(0, 180, 216, 0.5) !important;
+  color: #000;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0, 180, 216, 0.4);
+}
+
+/* Progress Container in Sidebar */
+.vf-progress-container {
+  width: 100%;
+  padding: 8px;
+  display: none;
+}
+
+.vf-sidebar-inner.expanded .vf-progress-container {
+  display: block;
+}
+
+.vf-text-preview {
+  font-size: 12px;
+  color: #fff;
+  line-height: 1.5;
+  max-height: 60px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.vf-text-preview .current-word {
+  background: rgba(0, 180, 216, 0.4);
+  border-radius: 3px;
+  padding: 0 3px;
+}
+
+/* Icon styles */
+.vf-icon-play,
+.vf-icon-pause {
+  width: 20px;
+  height: 20px;
+}
+
+/* Selection hint floating near selection */
+.vf-selection-hint {
+  position: fixed;
+  background: #1a1a2e;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  z-index: 2147483646;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vf-selection-hint.show {
+  opacity: 1;
+}
+
+/* Responsive - smaller screens */
+@media (max-height: 500px) {
+  .vf-sidebar-inner {
+    padding: 8px 6px;
+    gap: 4px;
+  }
+  
+  .vf-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .vf-play-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .vf-avatar {
+    width: 28px;
+    height: 28px;
+  }
+}
