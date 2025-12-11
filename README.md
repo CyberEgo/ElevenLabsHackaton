@@ -4,6 +4,8 @@
 
 Built for the ElevenLabs Hackathon.
 
+📄 [Product Brief](Product-Brief.md)
+
 ## Team: AISquad#1
 
 - **Inna Dedova**
