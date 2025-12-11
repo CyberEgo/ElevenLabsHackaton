@@ -132,11 +132,6 @@ class VoiceFlowSidebar {
           <span>»</span>
         </button>
 
-        <!-- Voice Avatar (shows current voice - click for info) -->
-        <div class="vf-avatar" id="vf-avatar" title="Voice: ${this.currentVoiceName}">
-          <span class="vf-avatar-initial">${this.currentVoiceName.substring(0, 1).toUpperCase()}</span>
-        </div>
-
         <!-- Mic Button (WhisperFlow hold-to-dictate) -->
         <button class="vf-btn vf-mic" id="vf-mic" title="Hold to Dictate (WhisperFlow)">
           <svg viewBox="0 0 384 512" fill="currentColor" width="16" height="16">
@@ -207,12 +202,6 @@ class VoiceFlowSidebar {
     // Collapse/Hide button
     document.getElementById('vf-collapse').addEventListener('click', () => {
       this.hideSidebar();
-    });
-
-    // Avatar - shows current voice info (no longer opens selector)
-    document.getElementById('vf-avatar').addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.showToast(`Voice: ${this.currentVoiceName} (change in Settings)`);
     });
 
     // Mic button - WhisperFlow hold-to-dictate
@@ -377,24 +366,12 @@ class VoiceFlowSidebar {
         const currentVoice = this.availableVoices.find(v => v.voice_id === this.currentVoiceId);
         if (currentVoice) {
           this.currentVoiceName = currentVoice.name;
-          this.updateAvatarDisplay();
         }
         
         console.log('🎙️ Loaded', this.availableVoices.length, 'voices');
       }
     } catch (error) {
       console.error('🎙️ Failed to load voices:', error);
-    }
-  }
-
-  updateAvatarDisplay() {
-    const avatar = document.getElementById('vf-avatar');
-    if (avatar) {
-      avatar.title = `Voice: ${this.currentVoiceName}`;
-      const initial = avatar.querySelector('.vf-avatar-initial');
-      if (initial) {
-        initial.textContent = this.currentVoiceName.substring(0, 1).toUpperCase();
-      }
     }
   }
 
@@ -917,7 +894,6 @@ class VoiceFlowSidebar {
 
   updatePlayButton(state) {
     const btn = document.getElementById('vf-play');
-    const avatar = document.getElementById('vf-avatar');
     const waveform = document.getElementById('vf-waveform');
     const playIcon = btn.querySelector('.vf-icon-play');
     const pauseIcon = btn.querySelector('.vf-icon-pause');
@@ -936,7 +912,6 @@ class VoiceFlowSidebar {
         btn.classList.remove('loading');
         playIcon.style.display = 'none';
         pauseIcon.style.display = 'block';
-        avatar.classList.add('speaking');
         waveform.classList.add('active');
         break;
       case 'paused':
@@ -944,7 +919,6 @@ class VoiceFlowSidebar {
         btn.classList.remove('playing', 'loading');
         playIcon.style.display = 'block';
         pauseIcon.style.display = 'none';
-        avatar.classList.remove('speaking');
         waveform.classList.remove('active');
         break;
       case 'stopped':
@@ -953,7 +927,6 @@ class VoiceFlowSidebar {
         btn.classList.remove('playing', 'loading');
         playIcon.style.display = 'block';
         pauseIcon.style.display = 'none';
-        avatar.classList.remove('speaking');
         waveform.classList.remove('active');
         break;
     }

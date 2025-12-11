@@ -3,12 +3,14 @@
 
 class SettingsManager {
   constructor() {
+    this.voices = [];
     this.init();
   }
 
   async init() {
     await this.loadSettings();
     this.setupEventListeners();
+    await this.loadElevenLabsVoices();
   }
 
   async loadSettings() {
@@ -85,6 +87,64 @@ class SettingsManager {
     });
   }
 
+  async loadElevenLabsVoices() {
+    const key = document.getElementById('elevenLabsKey').value.trim();
+    if (!key) {
+      console.log('No ElevenLabs API key, using default voices');
+      return;
+    }
+
+    try {
+      const response = await fetch('https://api.elevenlabs.io/v1/voices', {
+        headers: {
+          'xi-api-key': key
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        this.voices = data.voices || [];
+        this.populateVoiceDropdown();
+        console.log('Loaded', this.voices.length, 'voices from ElevenLabs');
+      }
+    } catch (error) {
+      console.error('Failed to load ElevenLabs voices:', error);
+    }
+  }
+
+  populateVoiceDropdown() {
+    const select = document.getElementById('defaultVoice');
+    const currentValue = select.value;
+    
+    // Clear existing options
+    select.innerHTML = '';
+    
+    if (this.voices.length === 0) {
+      // Fallback to default option if no voices loaded
+      select.innerHTML = '<option value="21m00Tcm4TlvDq8ikWAM">Rachel (Default)</option>';
+      return;
+    }
+    
+    // Add voices from ElevenLabs
+    this.voices.forEach(voice => {
+      const option = document.createElement('option');
+      option.value = voice.voice_id;
+      option.textContent = voice.name;
+      if (voice.labels) {
+        const labels = Object.values(voice.labels).filter(l => l).slice(0, 2).join(', ');
+        if (labels) {
+          option.textContent += ` (${labels})`;
+        }
+      }
+      select.appendChild(option);
+    });
+    
+    // Restore selection if possible
+    if (currentValue && this.voices.some(v => v.voice_id === currentValue)) {
+      select.value = currentValue;
+    }
+  }
+
   async testElevenLabsKey() {
     const key = document.getElementById('elevenLabsKey').value.trim();
     if (!key) {
@@ -105,6 +165,8 @@ class SettingsManager {
         const data = await response.json();
         this.updateStatus('elevenLabsStatus', 'success', `✓ Connected as ${data.subscription?.tier || 'user'}`);
         this.showToast('ElevenLabs connection successful!');
+        // Load voices after successful connection
+        await this.loadElevenLabsVoices();
       } else {
         this.updateStatus('elevenLabsStatus', 'error', '✗ Invalid API key');
         this.showToast('Invalid ElevenLabs API key', true);
