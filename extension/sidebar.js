@@ -65,12 +65,15 @@ class LexiaSidebar {
     document.addEventListener('focusin', (e) => {
       if (this.isEditableElement(e.target)) {
         this.lastFocusedInput = e.target;
+        console.log('🎤 Tracking input:', e.target.tagName, e.target.id || e.target.name || '');
       }
-    });
+    }, true); // Use capture phase to ensure we see all focus events
   }
 
   isEditableElement(el) {
     if (!el) return false;
+    // Exclude our own sidebar elements
+    if (el.closest && el.closest('#lexia-sidebar')) return false;
     return el.tagName === 'INPUT' ||
            el.tagName === 'TEXTAREA' ||
            el.isContentEditable ||
@@ -183,6 +186,7 @@ class LexiaSidebar {
       <!-- Dictation Display (WhisperFlow floating text) -->
       <div class="vf-dictation-display" id="vf-dictation-display">
         <div class="vf-dictation-text" id="vf-dictation-text"></div>
+        <div class="vf-dictation-hint">Release to insert • ESC to cancel</div>
       </div>
 
       <!-- Status Toast -->
@@ -554,17 +558,44 @@ class LexiaSidebar {
   }
 
   findTargetElement() {
-    // Return the currently focused editable element, or last known
-    if (this.isEditableElement(document.activeElement)) {
-      return document.activeElement;
+    // Priority 1: Currently focused editable element
+    const active = document.activeElement;
+    if (this.isEditableElement(active)) {
+      return active;
     }
-    return this.lastFocusedInput;
+
+    // Priority 2: Last focused input (stored)
+    if (this.lastFocusedInput && document.body.contains(this.lastFocusedInput)) {
+      return this.lastFocusedInput;
+    }
+
+    // Priority 3: Find first visible input/textarea on page (excluding our sidebar)
+    const inputs = document.querySelectorAll('input[type="text"], input:not([type]), textarea, [contenteditable="true"]');
+    for (const input of inputs) {
+      if (this.isVisible(input) && !input.closest('#lexia-sidebar')) {
+        return input;
+      }
+    }
+
+    return null;
+  }
+
+  isVisible(el) {
+    if (!el) return false;
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0 && 
+           rect.top < window.innerHeight && rect.bottom > 0;
   }
 
   insertDictatedText(text) {
-    const target = this.targetElement;
+    const target = this.targetElement || this.findTargetElement();
+    
     if (!target) {
-      console.log('🎤 No target element for dictation');
+      // No target found - copy to clipboard as fallback
+      console.log('🎤 No target element for dictation, copying to clipboard');
+      navigator.clipboard.writeText(text).then(() => {
+        this.showToast('📋 Copied to clipboard (no input focused)');
+      });
       return;
     }
 
