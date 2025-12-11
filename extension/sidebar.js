@@ -758,12 +758,29 @@ class LexiaSidebar {
   }
 
   startHighlighting() {
-    if (!this.settings.highlightWords || this.wordTimings.length === 0) return;
+    console.log('🎨 startHighlighting called, wordTimings:', this.wordTimings.length, 'wordSpans:', this.wordSpans.length);
+    
+    if (!this.settings.highlightWords) {
+      console.log('🎨 Highlighting disabled in settings');
+      return;
+    }
+    
+    if (this.wordTimings.length === 0) {
+      console.log('🎨 No word timings available');
+      return;
+    }
+    
+    if (this.wordSpans.length === 0) {
+      console.log('🎨 No word spans on page - selection may not have been wrapped');
+      return;
+    }
     
     // Clear any existing interval
     if (this.highlightInterval) {
       clearInterval(this.highlightInterval);
     }
+    
+    console.log('🎨 Starting highlight interval, first few timings:', this.wordTimings.slice(0, 3));
     
     this.highlightInterval = setInterval(() => {
       if (!this.audio || this.isPaused) return;
@@ -776,7 +793,10 @@ class LexiaSidebar {
         if (currentTime >= timing.start && currentTime <= timing.end + 0.1) {
           if (this.currentWordIndex !== i) {
             this.currentWordIndex = i;
-            this.highlightCurrentWord(i);
+            // Make sure we don't go beyond wordSpans array
+            if (i < this.wordSpans.length) {
+              this.highlightCurrentWord(i);
+            }
           }
           break;
         }
@@ -788,14 +808,25 @@ class LexiaSidebar {
     // Remove highlight from all word spans
     this.wordSpans.forEach(span => {
       span.classList.remove('lexia-word-current');
+      // Reset inline styles
+      span.style.background = '';
+      span.style.color = '';
+      span.style.fontWeight = '';
+      span.style.boxShadow = '';
     });
     
     // Add highlight to current word
     if (this.wordSpans[index]) {
-      this.wordSpans[index].classList.add('lexia-word-current');
+      const span = this.wordSpans[index];
+      span.classList.add('lexia-word-current');
+      
+      // Apply inline styles as backup (in case CSS class doesn't work)
+      span.style.cssText = 'display: inline !important; background: rgba(0, 180, 216, 0.6) !important; color: #000 !important; font-weight: 600 !important; padding: 2px 4px !important; border-radius: 4px !important; box-shadow: 0 2px 8px rgba(0, 180, 216, 0.5) !important; transition: all 0.15s ease !important;';
+      
+      console.log('🎨 Highlighting word', index, ':', span.textContent);
       
       // Scroll the word into view if needed
-      this.wordSpans[index].scrollIntoView({
+      span.scrollIntoView({
         behavior: 'smooth',
         block: 'center',
         inline: 'nearest'
@@ -804,12 +835,18 @@ class LexiaSidebar {
   }
 
   wrapSelectionWithHighlights() {
-    if (!this.selectionRange) return;
+    if (!this.selectionRange) {
+      console.log('🎨 No selection range to wrap');
+      return;
+    }
     
     try {
+      console.log('🎨 Wrapping selection with highlights...');
+      
       // Create a container for the highlighted text
       const container = document.createElement('span');
       container.className = 'lexia-highlight-container';
+      container.style.cssText = 'display: inline !important;';
       
       // Extract the selected content
       const fragment = this.selectionRange.extractContents();
@@ -818,11 +855,15 @@ class LexiaSidebar {
       const textContent = fragment.textContent || '';
       const words = textContent.split(/\s+/).filter(w => w.length > 0);
       
+      console.log('🎨 Found', words.length, 'words to highlight:', words.slice(0, 5), '...');
+      
       // Create spans for each word
       this.wordSpans = [];
       words.forEach((word, i) => {
         const wordSpan = document.createElement('span');
         wordSpan.className = 'lexia-word';
+        // Add inline styles as backup in case CSS doesn't load
+        wordSpan.style.cssText = 'display: inline !important; padding: 2px 0 !important; border-radius: 3px !important; transition: all 0.15s ease !important;';
         wordSpan.textContent = word;
         wordSpan.dataset.index = i;
         this.wordSpans.push(wordSpan);
@@ -838,11 +879,13 @@ class LexiaSidebar {
       this.selectionRange.insertNode(container);
       this.highlightContainer = container;
       
+      console.log('🎨 Created', this.wordSpans.length, 'word spans');
+      
       // Clear the browser selection
       window.getSelection().removeAllRanges();
       
     } catch (e) {
-      console.error('Failed to wrap selection with highlights:', e);
+      console.error('🎨 Failed to wrap selection with highlights:', e);
     }
   }
 

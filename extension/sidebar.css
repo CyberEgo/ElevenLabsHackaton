@@ -413,25 +413,33 @@
   text-align: center;
 }
 
-/* Word Highlighting - Speechify Style */
+/* Word Highlighting - Speechify Style - High specificity to override page styles */
 .lexia-highlight-container {
-  display: inline;
+  display: inline !important;
+  font-size: inherit !important;
+  font-family: inherit !important;
+  line-height: inherit !important;
 }
 
-.lexia-word {
-  display: inline;
-  padding: 2px 0;
-  border-radius: 3px;
-  transition: all 0.15s ease;
+span.lexia-word {
+  display: inline !important;
+  padding: 2px 0 !important;
+  border-radius: 3px !important;
+  transition: all 0.15s ease !important;
+  font-size: inherit !important;
+  font-family: inherit !important;
+  line-height: inherit !important;
+  background: transparent !important;
 }
 
-.lexia-word-current {
-  background: rgba(0, 180, 216, 0.5) !important;
+span.lexia-word.lexia-word-current {
+  background: rgba(0, 180, 216, 0.6) !important;
   color: #000 !important;
-  font-weight: 500;
-  box-shadow: 0 2px 8px rgba(0, 180, 216, 0.4);
-  padding: 2px 4px;
-  border-radius: 4px;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 12px rgba(0, 180, 216, 0.5) !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  text-shadow: none !important;
 }
 
 .vf-highlight-wrapper {
