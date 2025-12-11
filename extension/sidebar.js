@@ -87,28 +87,33 @@ class VoiceFlowSidebar {
         <!-- Timer/Progress -->
         <div class="vf-timer" id="vf-timer">0:00</div>
 
-        <!-- Play/Pause Button -->
+        <!-- Play/Pause Button (FontAwesome-style) -->
         <button class="vf-btn vf-play-btn" id="vf-play" title="Play/Pause (Space)">
-          <svg class="vf-icon-play" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M8 5v14l11-7z"/>
+          <svg class="vf-icon-play" viewBox="0 0 384 512" fill="currentColor">
+            <path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/>
           </svg>
-          <svg class="vf-icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none">
-            <rect x="6" y="4" width="4" height="16"/>
-            <rect x="14" y="4" width="4" height="16"/>
+          <svg class="vf-icon-pause" viewBox="0 0 320 512" fill="currentColor" style="display:none">
+            <path d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z"/>
           </svg>
         </button>
 
-        <!-- Skip Controls -->
+        <!-- Skip Controls (FontAwesome-style) -->
         <button class="vf-btn vf-skip" id="vf-skip-back" title="Back 10s">
-          <span>«</span>
+          <svg viewBox="0 0 512 512" fill="currentColor" width="16" height="16">
+            <path d="M459.5 440.6c9.5 7.9 22.8 9.7 34.1 4.4s18.4-16.6 18.4-29V96c0-12.4-7.2-23.7-18.4-29s-24.5-3.6-34.1 4.4L288 214.3V96c0-12.4-7.2-23.7-18.4-29s-24.5-3.6-34.1 4.4l-192 160c-7.3 6.1-11.5 15.1-11.5 24.6s4.2 18.5 11.5 24.6l192 160c9.5 7.9 22.8 9.7 34.1 4.4s18.4-16.6 18.4-29V297.7l171.5 142.9z"/>
+          </svg>
         </button>
         <button class="vf-btn vf-skip" id="vf-skip-forward" title="Forward 10s">
-          <span>»</span>
+          <svg viewBox="0 0 512 512" fill="currentColor" width="16" height="16">
+            <path d="M52.5 440.6c-9.5 7.9-22.8 9.7-34.1 4.4S0 428.4 0 416V96C0 83.6 7.2 72.3 18.4 67s24.5-3.6 34.1 4.4L224 214.3V96c0-12.4 7.2-23.7 18.4-29s24.5-3.6 34.1 4.4l192 160c7.3 6.1 11.5 15.1 11.5 24.6s-4.2 18.5-11.5 24.6l-192 160c-9.5 7.9-22.8 9.7-34.1 4.4s-18.4-16.6-18.4-29V297.7L52.5 440.6z"/>
+          </svg>
         </button>
 
-        <!-- Voice Avatar -->
+        <!-- Voice Avatar (Microphone icon - FontAwesome-style) -->
         <div class="vf-avatar" id="vf-avatar" title="Voice: ${this.currentVoiceName} (click to change)">
-          🎙️
+          <svg viewBox="0 0 384 512" fill="currentColor" width="18" height="18">
+            <path d="M192 0C139 0 96 43 96 96V256c0 53 43 96 96 96s96-43 96-96V96c0-53-43-96-96-96zM64 216c0-13.3-10.7-24-24-24s-24 10.7-24 24v40c0 89.1 66.2 162.7 152 174.4V464H120c-13.3 0-24 10.7-24 24s10.7 24 24 24h72 72c13.3 0 24-10.7 24-24s-10.7-24-24-24H216V430.4c85.8-11.7 152-85.3 152-174.4V216c0-13.3-10.7-24-24-24s-24 10.7-24 24v40c0 70.7-57.3 128-128 128s-128-57.3-128-128V216z"/>
+          </svg>
         </div>
 
         <!-- Speed Control -->
@@ -116,10 +121,10 @@ class VoiceFlowSidebar {
           <span id="vf-speed-text">${this.currentSpeed}x</span>
         </button>
 
-        <!-- Read Selection -->
+        <!-- Read Selection (FontAwesome text-selection style) -->
         <button class="vf-btn" id="vf-selection" title="Read Selection">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-            <path d="M3 5h2V3H3v2zm0 8h2v-2H3v2zm4 8h2v-2H7v2zM3 9h2V7H3v2zm10-6h-2v2h2V3zm6 0v2h2V3h-2zM5 21v-2H3v2h2zm-2-4h2v-2H3v2zM9 3H7v2h2V3zm2 18h2v-2h-2v2zm8-8h2v-2h-2v2zm0 8v-2h-2v2h2zm0-12h2V7h-2v2zm0 8h2v-2h-2v2zm-4 4h2v-2h-2v2zm0-16h2V3h-2v2zM7 17h10V7H7v10zm2-8h6v6H9V9z"/>
+          <svg viewBox="0 0 448 512" fill="currentColor" width="18" height="18">
+            <path d="M0 64C0 46.3 14.3 32 32 32c229.8 0 416 186.2 416 416c0 17.7-14.3 32-32 32s-32-14.3-32-32C384 220.4 267.6 104 72 104V160c0 13.3-10.7 24-24 24S24 173.3 24 160V80 64H0zm0 224c0-17.7 14.3-32 32-32c123.5 0 224 100.5 224 224c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-88.4-71.6-160-160-160c-17.7 0-32-14.3-32-32zm160 96a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/>
           </svg>
         </button>
 
@@ -132,17 +137,17 @@ class VoiceFlowSidebar {
           <div class="vf-wave"></div>
         </div>
 
-        <!-- Settings -->
+        <!-- Settings (FontAwesome gear style) -->
         <button class="vf-btn" id="vf-settings" title="Settings">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-            <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+          <svg viewBox="0 0 512 512" fill="currentColor" width="18" height="18">
+            <path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"/>
           </svg>
         </button>
 
-        <!-- Collapse Button -->
+        <!-- Collapse Button (FontAwesome chevron style) -->
         <button class="vf-btn vf-collapse" id="vf-collapse" title="Hide sidebar">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+          <svg viewBox="0 0 320 512" fill="currentColor" width="14" height="14">
+            <path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"/>
           </svg>
         </button>
       </div>

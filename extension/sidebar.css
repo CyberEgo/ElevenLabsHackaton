@@ -123,6 +123,12 @@
   justify-content: center;
   background: linear-gradient(135deg, #00b4d8, #0077b6);
   font-size: 16px;
+  color: #fff;
+}
+
+.vf-avatar svg {
+  width: 18px;
+  height: 18px;
 }
 
 .vf-avatar:hover {
