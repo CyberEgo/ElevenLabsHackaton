@@ -85,6 +85,11 @@ class SettingsManager {
         await this.clearSettings();
       }
     });
+
+    // Test voice
+    document.getElementById('testVoice').addEventListener('click', async () => {
+      await this.testVoice();
+    });
   }
 
   async loadElevenLabsVoices() {
@@ -109,6 +114,76 @@ class SettingsManager {
       }
     } catch (error) {
       console.error('Failed to load ElevenLabs voices:', error);
+    }
+  }
+
+  async testVoice() {
+    const key = document.getElementById('elevenLabsKey').value.trim();
+    const voiceId = document.getElementById('defaultVoice').value;
+    
+    if (!key) {
+      this.showToast('Please add your ElevenLabs API key first', true);
+      return;
+    }
+    
+    if (!voiceId) {
+      this.showToast('Please select a voice first', true);
+      return;
+    }
+
+    const testBtn = document.getElementById('testVoice');
+    const originalText = testBtn.textContent;
+    testBtn.textContent = '⏳ Playing...';
+    testBtn.disabled = true;
+
+    try {
+      const response = await fetch(
+        `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'xi-api-key': key
+          },
+          body: JSON.stringify({
+            text: 'Hello! This is a test of the selected voice. How does it sound?',
+            model_id: 'eleven_multilingual_v2',
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.75
+            }
+          })
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail?.message || `API Error: ${response.status}`);
+      }
+
+      const audioBlob = await response.blob();
+      const audio = new Audio(URL.createObjectURL(audioBlob));
+      
+      audio.onended = () => {
+        testBtn.textContent = originalText;
+        testBtn.disabled = false;
+        URL.revokeObjectURL(audio.src);
+      };
+      
+      audio.onerror = () => {
+        testBtn.textContent = originalText;
+        testBtn.disabled = false;
+        this.showToast('Failed to play audio', true);
+      };
+
+      await audio.play();
+      this.showToast('Playing voice sample...');
+
+    } catch (error) {
+      console.error('Voice test error:', error);
+      this.showToast(`Error: ${error.message}`, true);
+      testBtn.textContent = originalText;
+      testBtn.disabled = false;
     }
   }
 
