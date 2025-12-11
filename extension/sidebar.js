@@ -18,6 +18,14 @@ class VoiceFlowSidebar {
     this.isExpanded = false;
     this.toastTimeout = null;
     
+    // Dictation state (WhisperFlow-style)
+    this.isDictating = false;
+    this.dictationRecognition = null;
+    this.dictationText = '';
+    this.targetElement = null;
+    this.lastFocusedInput = null;
+    this.dictationStartTime = null;
+    
     // Voice settings
     this.currentVoiceId = '21m00Tcm4TlvDq8ikWAM'; // Default: Rachel
     this.currentVoiceName = 'Rachel';
@@ -41,8 +49,27 @@ class VoiceFlowSidebar {
     await this.loadApiKeys();
     this.createSidebar();
     this.setupEventListeners();
+    this.setupWhisperFlowDictation();
+    this.setupInputTracking();
     this.loadVoices();
     console.log('🎙️ VoiceFlow Sidebar initialized');
+  }
+
+  setupInputTracking() {
+    // Track which input element was last focused for dictation insertion
+    document.addEventListener('focusin', (e) => {
+      if (this.isEditableElement(e.target)) {
+        this.lastFocusedInput = e.target;
+      }
+    });
+  }
+
+  isEditableElement(el) {
+    if (!el) return false;
+    return el.tagName === 'INPUT' ||
+           el.tagName === 'TEXTAREA' ||
+           el.isContentEditable ||
+           el.getAttribute('role') === 'textbox';
   }
 
   async loadSettings() {
@@ -97,34 +124,35 @@ class VoiceFlowSidebar {
           </svg>
         </button>
 
-        <!-- Skip Controls (FontAwesome-style) -->
+        <!-- Skip Controls (Simple text arrows) -->
         <button class="vf-btn vf-skip" id="vf-skip-back" title="Back 10s">
-          <svg viewBox="0 0 512 512" fill="currentColor" width="16" height="16">
-            <path d="M459.5 440.6c9.5 7.9 22.8 9.7 34.1 4.4s18.4-16.6 18.4-29V96c0-12.4-7.2-23.7-18.4-29s-24.5-3.6-34.1 4.4L288 214.3V96c0-12.4-7.2-23.7-18.4-29s-24.5-3.6-34.1 4.4l-192 160c-7.3 6.1-11.5 15.1-11.5 24.6s4.2 18.5 11.5 24.6l192 160c9.5 7.9 22.8 9.7 34.1 4.4s18.4-16.6 18.4-29V297.7l171.5 142.9z"/>
-          </svg>
+          <span>«</span>
         </button>
         <button class="vf-btn vf-skip" id="vf-skip-forward" title="Forward 10s">
-          <svg viewBox="0 0 512 512" fill="currentColor" width="16" height="16">
-            <path d="M52.5 440.6c-9.5 7.9-22.8 9.7-34.1 4.4S0 428.4 0 416V96C0 83.6 7.2 72.3 18.4 67s24.5-3.6 34.1 4.4L224 214.3V96c0-12.4 7.2-23.7 18.4-29s24.5-3.6 34.1 4.4l192 160c7.3 6.1 11.5 15.1 11.5 24.6s-4.2 18.5-11.5 24.6l-192 160c-9.5 7.9-22.8 9.7-34.1 4.4s-18.4-16.6-18.4-29V297.7L52.5 440.6z"/>
-          </svg>
+          <span>»</span>
         </button>
 
-        <!-- Voice Avatar (Microphone icon - FontAwesome-style) -->
-        <div class="vf-avatar" id="vf-avatar" title="Voice: ${this.currentVoiceName} (click to change)">
-          <svg viewBox="0 0 384 512" fill="currentColor" width="18" height="18">
+        <!-- Voice Avatar (shows current voice - click for info) -->
+        <div class="vf-avatar" id="vf-avatar" title="Voice: ${this.currentVoiceName}">
+          <span class="vf-avatar-initial">${this.currentVoiceName.substring(0, 1).toUpperCase()}</span>
+        </div>
+
+        <!-- Mic Button (WhisperFlow hold-to-dictate) -->
+        <button class="vf-btn vf-mic" id="vf-mic" title="Hold to Dictate (WhisperFlow)">
+          <svg viewBox="0 0 384 512" fill="currentColor" width="16" height="16">
             <path d="M192 0C139 0 96 43 96 96V256c0 53 43 96 96 96s96-43 96-96V96c0-53-43-96-96-96zM64 216c0-13.3-10.7-24-24-24s-24 10.7-24 24v40c0 89.1 66.2 162.7 152 174.4V464H120c-13.3 0-24 10.7-24 24s10.7 24 24 24h72 72c13.3 0 24-10.7 24-24s-10.7-24-24-24H216V430.4c85.8-11.7 152-85.3 152-174.4V216c0-13.3-10.7-24-24-24s-24 10.7-24 24v40c0 70.7-57.3 128-128 128s-128-57.3-128-128V216z"/>
           </svg>
-        </div>
+        </button>
 
         <!-- Speed Control -->
         <button class="vf-btn vf-speed" id="vf-speed" title="Playback Speed">
           <span id="vf-speed-text">${this.currentSpeed}x</span>
         </button>
 
-        <!-- Read Selection (FontAwesome text-selection style) -->
+        <!-- Read Selection (Grid/Selection icon) -->
         <button class="vf-btn" id="vf-selection" title="Read Selection">
-          <svg viewBox="0 0 448 512" fill="currentColor" width="18" height="18">
-            <path d="M0 64C0 46.3 14.3 32 32 32c229.8 0 416 186.2 416 416c0 17.7-14.3 32-32 32s-32-14.3-32-32C384 220.4 267.6 104 72 104V160c0 13.3-10.7 24-24 24S24 173.3 24 160V80 64H0zm0 224c0-17.7 14.3-32 32-32c123.5 0 224 100.5 224 224c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-88.4-71.6-160-160-160c-17.7 0-32-14.3-32-32zm160 96a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/>
+          <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+            <path d="M3 5h2V3H3v2zm0 8h2v-2H3v2zm4 8h2v-2H7v2zM3 9h2V7H3v2zm10-6h-2v2h2V3zm6 0v2h2V3h-2zM5 21v-2H3v2h2zm-2-4h2v-2H3v2zM9 3H7v2h2V3zm2 18h2v-2h-2v2zm8-8h2v-2h-2v2zm0 8v-2h-2v2h2zm0-12h2V7h-2v2zm0 8h2v-2h-2v2zm-4 4h2v-2h-2v2zm0-16h2V3h-2v2zM7 17h10V7H7v10zm2-8h6v6H9V9z"/>
           </svg>
         </button>
 
@@ -152,6 +180,11 @@ class VoiceFlowSidebar {
         </button>
       </div>
 
+      <!-- Dictation Display (WhisperFlow floating text) -->
+      <div class="vf-dictation-display" id="vf-dictation-display">
+        <div class="vf-dictation-text" id="vf-dictation-text"></div>
+      </div>
+
       <!-- Status Toast -->
       <div class="vf-toast" id="vf-toast"></div>
     `;
@@ -176,11 +209,28 @@ class VoiceFlowSidebar {
       this.hideSidebar();
     });
 
-    // Avatar - voice selector
+    // Avatar - shows current voice info (no longer opens selector)
     document.getElementById('vf-avatar').addEventListener('click', (e) => {
       e.stopPropagation();
-      this.showVoiceSelector();
+      this.showToast(`Voice: ${this.currentVoiceName} (change in Settings)`);
     });
+
+    // Mic button - WhisperFlow hold-to-dictate
+    const micBtn = document.getElementById('vf-mic');
+    micBtn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      this.startDictation();
+    });
+    micBtn.addEventListener('mouseup', () => this.stopDictation(true));
+    micBtn.addEventListener('mouseleave', () => {
+      if (this.isDictating) this.stopDictation(true);
+    });
+    // Touch support
+    micBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      this.startDictation();
+    });
+    micBtn.addEventListener('touchend', () => this.stopDictation(true));
 
     // Speed control
     document.getElementById('vf-speed').addEventListener('click', () => {
@@ -215,11 +265,10 @@ class VoiceFlowSidebar {
       this.handleKeyboard(e);
     });
 
-    // Click outside to close voice selector
-    document.addEventListener('click', (e) => {
-      const selector = document.getElementById('vf-voice-selector');
-      if (selector && !selector.contains(e.target) && e.target.id !== 'vf-avatar') {
-        selector.remove();
+    // V key release for dictation
+    document.addEventListener('keyup', (e) => {
+      if (e.code === 'KeyV' && this.isDictating) {
+        this.stopDictation(true);
       }
     });
 
@@ -228,6 +277,7 @@ class VoiceFlowSidebar {
       if (request.action === 'settingsUpdated') {
         this.loadSettings();
         this.loadApiKeys();
+        this.loadVoices();
       }
     });
   }
@@ -245,8 +295,20 @@ class VoiceFlowSidebar {
   }
 
   handleKeyboard(e) {
-    // Don't capture if user is typing in an input
+    // V key for dictation works in input fields too
+    if (e.code === 'KeyV' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (this.isEditableElement(document.activeElement)) {
+        e.preventDefault();
+        this.startDictation();
+        return;
+      }
+    }
+
+    // Don't capture other shortcuts if user is typing in an input
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+      if (e.code === 'Escape' && this.isDictating) {
+        this.stopDictation(false); // Cancel without inserting
+      }
       return;
     }
 
@@ -255,6 +317,12 @@ class VoiceFlowSidebar {
         if (this.isPlaying) {
           e.preventDefault();
           this.togglePause();
+        }
+        break;
+      case 'KeyV':
+        if (!e.repeat) {
+          e.preventDefault();
+          this.startDictation();
         }
         break;
       case 'ArrowLeft':
@@ -282,7 +350,11 @@ class VoiceFlowSidebar {
         }
         break;
       case 'Escape':
-        this.stop();
+        if (this.isDictating) {
+          this.stopDictation(false); // Cancel without inserting
+        } else {
+          this.stop();
+        }
         break;
     }
   }
@@ -300,12 +372,12 @@ class VoiceFlowSidebar {
       if (response.ok) {
         const data = await response.json();
         this.availableVoices = data.voices || [];
-        this.renderVoiceDropdown();
         
-        // Update current voice name
+        // Update current voice name from saved voice ID
         const currentVoice = this.availableVoices.find(v => v.voice_id === this.currentVoiceId);
         if (currentVoice) {
           this.currentVoiceName = currentVoice.name;
+          this.updateAvatarDisplay();
         }
         
         console.log('🎙️ Loaded', this.availableVoices.length, 'voices');
@@ -315,121 +387,234 @@ class VoiceFlowSidebar {
     }
   }
 
+  updateAvatarDisplay() {
+    const avatar = document.getElementById('vf-avatar');
+    if (avatar) {
+      avatar.title = `Voice: ${this.currentVoiceName}`;
+      const initial = avatar.querySelector('.vf-avatar-initial');
+      if (initial) {
+        initial.textContent = this.currentVoiceName.substring(0, 1).toUpperCase();
+      }
+    }
+  }
+
   renderVoiceDropdown() {
-    // This method is now replaced by showVoiceSelector()
+    // Voice selection is now in settings page
   }
 
   toggleVoiceDropdown() {
-    // This method is now replaced by showVoiceSelector()
-    this.showVoiceSelector();
+    // Voice selection is now in settings page
+    this.showToast(`Voice: ${this.currentVoiceName} (change in Settings)`);
   }
 
   showVoiceSelector() {
-    // Remove existing selector
-    const existing = document.getElementById('vf-voice-selector');
-    if (existing) {
-      existing.remove();
+    // Voice selection moved to settings page
+    this.showToast(`Voice: ${this.currentVoiceName} (change in Settings)`);
+  }
+
+  // WhisperFlow-style Dictation Setup
+  setupWhisperFlowDictation() {
+    console.log('🎤 Setting up WhisperFlow dictation...');
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.warn('🎤 Speech recognition not supported for dictation');
       return;
     }
 
-    const selector = document.createElement('div');
-    selector.id = 'vf-voice-selector';
-    selector.innerHTML = `
-      <div class="vf-voice-header">
-        <span>Select Voice</span>
-        <button class="vf-voice-close" id="vf-voice-close">×</button>
-      </div>
-      <div class="vf-voice-list" id="vf-voice-list">
-        ${this.availableVoices.length === 0 ? '<div class="vf-voice-loading">Loading voices...</div>' : ''}
-      </div>
-    `;
+    this.dictationRecognition = new SpeechRecognition();
+    this.dictationRecognition.continuous = true;
+    this.dictationRecognition.interimResults = true;
+    this.dictationRecognition.lang = 'en-US';
 
-    document.body.appendChild(selector);
+    this.dictationRecognition.onstart = () => {
+      console.log('🎤 WhisperFlow dictation started');
+      this.dictationStartTime = Date.now();
+    };
 
-    // Populate voices
-    const list = document.getElementById('vf-voice-list');
-    if (this.availableVoices.length > 0) {
-      list.innerHTML = this.availableVoices.slice(0, 20).map(voice => `
-        <div class="vf-voice-item ${voice.voice_id === this.currentVoiceId ? 'selected' : ''}"
-             data-voice-id="${voice.voice_id}" data-voice-name="${voice.name}">
-          <div class="vf-voice-avatar-small">${voice.name.substring(0, 2).toUpperCase()}</div>
-          <div class="vf-voice-info">
-            <div class="vf-voice-name">${voice.name}</div>
-            <div class="vf-voice-labels">${voice.labels?.accent || ''} ${voice.labels?.gender || ''}</div>
-          </div>
-          <button class="vf-voice-preview" data-voice-id="${voice.voice_id}">▶ Test</button>
-        </div>
-      `).join('');
+    this.dictationRecognition.onresult = (event) => {
+      let interimTranscript = '';
+      let finalTranscript = '';
 
-      // Add click handlers
-      list.querySelectorAll('.vf-voice-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-          if (e.target.classList.contains('vf-voice-preview')) return;
-          this.selectVoice(item.dataset.voiceId, item.dataset.voiceName);
-          selector.remove();
-        });
-      });
-
-      // Preview buttons
-      list.querySelectorAll('.vf-voice-preview').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.previewVoice(btn.dataset.voiceId);
-        });
-      });
-    }
-
-    // Close button
-    document.getElementById('vf-voice-close').addEventListener('click', () => {
-      selector.remove();
-    });
-  }
-
-  async previewVoice(voiceId) {
-    this.showToast('🔊 Previewing voice...');
-    const previewText = 'Hello! This is how I sound.';
-    
-    try {
-      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`, {
-        method: 'POST',
-        headers: {
-          'xi-api-key': this.elevenLabsKey,
-          'Content-Type': 'application/json',
-          'Accept': 'audio/mpeg'
-        },
-        body: JSON.stringify({
-          text: previewText,
-          model_id: 'eleven_flash_v2_5'
-        })
-      });
-
-      if (response.ok) {
-        const audioBlob = await response.blob();
-        const audio = new Audio(URL.createObjectURL(audioBlob));
-        audio.play();
-      } else {
-        throw new Error(`ElevenLabs error: ${response.status}`);
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
       }
-    } catch (error) {
-      console.error('Preview failed:', error);
-      this.showToast('Preview failed - check API key', 'error');
+
+      // Update the dictation display
+      const displayText = finalTranscript || interimTranscript;
+      this.dictationText = displayText;
+      this.updateDictationDisplay(displayText, !finalTranscript);
+
+      console.log('🎤 Dictation:', displayText, finalTranscript ? '(final)' : '(interim)');
+    };
+
+    this.dictationRecognition.onerror = (event) => {
+      console.error('🎤 Dictation error:', event.error);
+      if (event.error !== 'no-speech' && event.error !== 'aborted') {
+        this.showToast('Dictation error: ' + event.error, 'error');
+      }
+    };
+
+    this.dictationRecognition.onend = () => {
+      console.log('🎤 Dictation recognition ended');
+      // If still dictating (user holding button), restart
+      if (this.isDictating) {
+        try {
+          this.dictationRecognition.start();
+        } catch (e) {
+          // Already started or other error
+        }
+      }
+    };
+  }
+
+  // Start WhisperFlow-style dictation
+  startDictation() {
+    if (this.isDictating) return;
+
+    console.log('🎤 Starting WhisperFlow dictation...');
+    this.isDictating = true;
+    this.dictationText = '';
+
+    // Pause any TTS playback
+    if (this.isPlaying && !this.isPaused) {
+      this.togglePause();
+    }
+
+    // Find and store the target element (focused input or last active)
+    this.targetElement = this.findTargetElement();
+
+    // Update UI
+    const micBtn = document.getElementById('vf-mic');
+    micBtn.classList.add('dictating');
+
+    // Show dictation display
+    const display = document.getElementById('vf-dictation-display');
+    const textEl = document.getElementById('vf-dictation-text');
+    textEl.textContent = '';
+    display.classList.add('active');
+
+    // Start recognition
+    if (this.dictationRecognition) {
+      try {
+        this.dictationRecognition.start();
+        this.showToast('🎤 Speak now...');
+      } catch (e) {
+        console.error('🎤 Failed to start dictation:', e);
+        this.showToast('Failed to start dictation', 'error');
+        this.isDictating = false;
+        micBtn.classList.remove('dictating');
+        display.classList.remove('active');
+      }
+    } else {
+      this.showToast('Speech recognition not available', 'error');
+      this.isDictating = false;
+      micBtn.classList.remove('dictating');
+      display.classList.remove('active');
     }
   }
 
-  selectVoice(voiceId, voiceName) {
-    this.currentVoiceId = voiceId;
-    this.currentVoiceName = voiceName;
-    
-    // Update avatar title
-    const avatar = document.getElementById('vf-avatar');
-    if (avatar) {
-      avatar.title = `Voice: ${voiceName} (click to change)`;
+  // Stop dictation and optionally insert text
+  stopDictation(insertText = true) {
+    if (!this.isDictating) return;
+
+    console.log('🎤 Stopping dictation, insert:', insertText, 'text:', this.dictationText);
+    this.isDictating = false;
+
+    // Stop recognition
+    if (this.dictationRecognition) {
+      try {
+        this.dictationRecognition.stop();
+      } catch (e) {
+        // Already stopped
+      }
     }
-    
-    // Save preference
-    chrome.storage.local.set({ defaultVoice: voiceId });
-    
-    this.showToast(`Voice: ${voiceName}`);
+
+    // Update UI
+    const micBtn = document.getElementById('vf-mic');
+    micBtn.classList.remove('dictating');
+
+    const display = document.getElementById('vf-dictation-display');
+    display.classList.remove('active');
+
+    const textToProcess = this.dictationText.trim();
+
+    // Check if user cancelled
+    if (!insertText) {
+      this.showToast('❌ Cancelled');
+      this.clearDictationState();
+      return;
+    }
+
+    if (textToProcess) {
+      // Insert the dictated text
+      this.insertDictatedText(textToProcess);
+      this.showToast(`✅ Inserted: "${textToProcess.substring(0, 30)}${textToProcess.length > 30 ? '...' : ''}"`);
+    } else {
+      this.showToast('No text captured');
+    }
+
+    this.clearDictationState();
+  }
+
+  clearDictationState() {
+    this.dictationText = '';
+    this.targetElement = null;
+  }
+
+  findTargetElement() {
+    // Return the currently focused editable element, or last known
+    if (this.isEditableElement(document.activeElement)) {
+      return document.activeElement;
+    }
+    return this.lastFocusedInput;
+  }
+
+  insertDictatedText(text) {
+    const target = this.targetElement;
+    if (!target) {
+      console.log('🎤 No target element for dictation');
+      return;
+    }
+
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+      // Insert at cursor position
+      const start = target.selectionStart;
+      const end = target.selectionEnd;
+      const value = target.value;
+      target.value = value.substring(0, start) + text + value.substring(end);
+      target.selectionStart = target.selectionEnd = start + text.length;
+      target.focus();
+      // Trigger input event for frameworks
+      target.dispatchEvent(new Event('input', { bubbles: true }));
+    } else if (target.isContentEditable) {
+      // Insert at cursor in contenteditable
+      const selection = window.getSelection();
+      if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(document.createTextNode(text));
+        range.collapse(false);
+      } else {
+        target.textContent += text;
+      }
+      target.focus();
+      // Trigger input event
+      target.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+
+  updateDictationDisplay(text, isInterim = false) {
+    const textEl = document.getElementById('vf-dictation-text');
+    if (textEl) {
+      textEl.textContent = text;
+      textEl.classList.toggle('interim', isInterim);
+    }
   }
 
   async playSelectedText() {
